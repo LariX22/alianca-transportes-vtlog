@@ -5,11 +5,30 @@ require('dotenv').config();
 const dataDir = path.join(__dirname, '..', 'data');
 const vtlogDataFile = path.join(dataDir, 'vtlog-api-cache.json');
 
-function ensureVtlogStore() {
-  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  if (!fs.existsSync(vtlogDataFile)) {
-    fs.writeFileSync(vtlogDataFile, JSON.stringify(defaultCache(), null, 2), 'utf8');
-  }
+function cleanApiUrl(value) {
+  return String(value || 'https://api.vtlog.net').trim().replace(/\/+$/, '') || 'https://api.vtlog.net';
+}
+
+function cleanToken() {
+  const token = String(process.env.VTLOG_API_TOKEN || '').trim();
+  if (!token || token.includes('COLE_AQUI') || token.includes('SEU_TOKEN')) return '';
+  return token;
+}
+
+function cleanVtcId() {
+  const id = String(process.env.VTLOG_VTC_ID || '').trim();
+  return /^\d+$/.test(id) ? id : '';
+}
+
+function cleanSteamId() {
+  const id = String(process.env.VTLOG_STEAM_ID || '').trim();
+  return /^\d{17}$/.test(id) ? id : '';
+}
+
+function vtlogMode() {
+  const raw = String(process.env.VTLOG_MODE || '').trim().toLowerCase();
+  if (['personal', 'pessoal', 'user', 'steam'].includes(raw)) return 'personal';
+  return 'vtc';
 }
 
 function defaultCache() {
@@ -17,8 +36,10 @@ function defaultCache() {
     lastSyncAt: null,
     status: 'never_synced',
     error: null,
-    apiUrl: cleanApiUrl(process.env.VTLOG_API_URL || 'https://api.vtlog.net'),
-    vtcId: String(process.env.VTLOG_VTC_ID || '').trim() || null,
+    mode: vtlogMode(),
+    apiUrl: cleanApiUrl(process.env.VTLOG_API_URL),
+    steamId: cleanSteamId() || null,
+    vtcId: cleanVtcId() || null,
     summary: {
       jobs: 0,
       members: 0,
@@ -42,13 +63,32 @@ function defaultCache() {
   };
 }
 
+function ensureVtlogStore() {
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  if (!fs.existsSync(vtlogDataFile)) {
+    fs.writeFileSync(vtlogDataFile, JSON.stringify(defaultCache(), null, 2), 'utf8');
+  }
+}
+
 function readVtlogCache() {
   ensureVtlogStore();
+
   try {
     const parsed = JSON.parse(fs.readFileSync(vtlogDataFile, 'utf8'));
-    return { ...defaultCache(), ...parsed, summary: { ...defaultCache().summary, ...(parsed.summary || {}) } };
+    return {
+      ...defaultCache(),
+      ...parsed,
+      summary: {
+        ...defaultCache().summary,
+        ...(parsed.summary || {})
+      }
+    };
   } catch (error) {
-    return { ...defaultCache(), status: 'cache_error', error: error.message };
+    return {
+      ...defaultCache(),
+      status: 'cache_error',
+      error: error.message
+    };
   }
 }
 
@@ -57,41 +97,16 @@ function writeVtlogCache(cache) {
   fs.writeFileSync(vtlogDataFile, JSON.stringify(cache, null, 2), 'utf8');
 }
 
-function cleanApiUrl(value) {
-  return String(value || 'https://api.vtlog.net').trim().replace(/\/+$/, '') || 'https://api.vtlog.net';
-}
-
-function cleanToken() {
-  const token = String(process.env.VTLOG_API_TOKEN || '').trim();
-  if (!token || token.includes('COLE_AQUI') || token.includes('SEU_TOKEN')) return '';
-  return token;
-}
-
-function cleanVtcId() {
-  const id = String(process.env.VTLOG_VTC_ID || '').trim();
-  return /^\d+$/.test(id) ? id : '';
-}
-
-function cleanSteamId() {
-  const id = String(process.env.VTLOG_STEAM_ID || '').trim();
-  return /^\d{17}$/.test(id) ? id : '';
-}
-
-function vtlogMode() {
-  const raw = String(process.env.VTLOG_MODE || '').trim().toLowerCase();
-  if (raw === 'personal' || raw === 'pessoal' || raw === 'user' || raw === 'steam') return 'personal';
-  return 'vtc';
-}
-
 function tokenConfigured() {
   return Boolean(cleanToken());
 }
 
 function getConfigStatus() {
   const cache = readVtlogCache();
+
   return {
     ok: true,
-    apiUrl: cleanApiUrl(process.env.VTLOG_API_URL || cache.apiUrl || 'https://api.vtlog.net'),
+    apiUrl: cleanApiUrl(process.env.VTLOG_API_URL || cache.apiUrl),
     tokenConfigured: tokenConfigured(),
     mode: vtlogMode(),
     steamId: cleanSteamId() || process.env.VTLOG_STEAM_ID || null,
@@ -102,34 +117,43 @@ function getConfigStatus() {
     summary: cache.summary,
     endpoints: {
       userJobs: '/v2/user/{steam_id}/jobs',
-      userJobsAll: '/v2/user/{steam_id}/jobs/all',
       vtc: '/v2/vtc/{vtc_id}',
       jobs: '/v2/vtc/{vtc_id}/jobs',
       members: '/v2/vtc/{vtc_id}/members',
       stats: '/v2/vtc/{vtc_id}/stats',
       trucks: '/v2/vtc/{vtc_id}/trucks',
       garages: '/v2/vtc/{vtc_id}/garages',
-      ongoing: '/v2/vtc/{vtc_id}/jobs/ongoing',
-      fuelStations: '/v2/fuel-stations'
+      ongoing: '/v2/vtc/{vtc_id}/jobs/ongoing'
     }
   };
 }
 
 function buildUrl(pathname, query = {}) {
-  const url = new URL(`${cleanApiUrl(process.env.VTLOG_API_URL) || 'https://api.vtlog.net'}${pathname}`);
+  const base = cleanApiUrl(process.env.VTLOG_API_URL || 'https://api.vtlog.net');
+  const url = new URL(`${base}${pathname}`);
+
   for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined && value !== null && value !== '') url.searchParams.set(key, String(value));
+    if (value !== undefined && value !== null && value !== '') {
+      url.searchParams.set(key, String(value));
+    }
   }
+
   return url;
 }
 
 async function vtlogRequest(pathname, query = {}) {
   const token = cleanToken();
-  const headers = { Accept: 'application/json' };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  const headers = {
+    Accept: 'application/json'
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
 
   const response = await fetch(buildUrl(pathname, query), { headers });
   const text = await response.text();
+
   let payload = null;
   try {
     payload = text ? JSON.parse(text) : null;
@@ -138,13 +162,10 @@ async function vtlogRequest(pathname, query = {}) {
   }
 
   if (!response.ok) {
-    const retryAfter = response.headers.get('retry-after');
-    const rateLimit = response.headers.get('x-ratelimit-limit');
     const detail = payload?.error || payload?.message || response.statusText || `HTTP ${response.status}`;
-    const extra = retryAfter ? ` Tente novamente em ${retryAfter}s.` : '';
-    const limit = rateLimit ? ` Limite/min: ${rateLimit}.` : '';
-    throw new Error(`${detail}${extra}${limit}`);
+    throw new Error(detail);
   }
+
   return payload;
 }
 
@@ -156,18 +177,13 @@ function unwrap(payload) {
 
 function asArray(payload) {
   const data = unwrap(payload);
+
   if (Array.isArray(data)) return data;
   if (data && Array.isArray(data.data)) return data.data;
   if (data && Array.isArray(data.jobs)) return data.jobs;
   if (data && Array.isArray(data.items)) return data.items;
-  return data ? [data] : [];
-}
 
-function unixToDate(value) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric) || numeric <= 0) return new Date().toISOString().slice(0, 10);
-  const ms = numeric < 1e12 ? numeric * 1000 : numeric;
-  return new Date(ms).toISOString().slice(0, 10);
+  return data ? [data] : [];
 }
 
 function number(value, fallback = 0) {
@@ -177,31 +193,82 @@ function number(value, fallback = 0) {
 
 function firstNonEmpty(...values) {
   for (const value of values) {
-    if (value !== undefined && value !== null && String(value).trim() !== '') return value;
+    if (value !== undefined && value !== null && String(value).trim() !== '') {
+      return value;
+    }
   }
   return '';
 }
 
+function unixToDate(value) {
+  const numeric = Number(value);
+
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  const ms = numeric < 1e12 ? numeric * 1000 : numeric;
+  return new Date(ms).toISOString().slice(0, 10);
+}
+
 function memberMap(members) {
   const map = new Map();
+
   for (const member of members || []) {
     const key = String(member.steam_id || member.steamId || '').trim();
     if (key) map.set(key, member);
   }
+
   return map;
 }
 
 function normalizeJob(job = {}, membersBySteam = new Map()) {
   const member = membersBySteam.get(String(job.steam_id || '').trim()) || {};
-  const driverName = firstNonEmpty(member.name, member.username, job.username, job.driverName, job.steam_id, 'Motorista VTLog');
-  const origin = firstNonEmpty(job.departure_city_name, job.origin?.city_name, job.origin, job.source, 'Origem VTLog');
-  const destination = firstNonEmpty(job.arrival_city_name, job.destination?.city_name, job.destination, 'Destino VTLog');
-  const cargo = firstNonEmpty(job.cargo_name, job.cargo?.name, job.cargo, 'Carga VTLog');
+
+  const driverName = firstNonEmpty(
+    member.name,
+    member.username,
+    job.username,
+    job.driverName,
+    job.steam_id,
+    'Motorista VTLog'
+  );
+
+  const origin = firstNonEmpty(
+    job.departure_city_name,
+    job.origin?.city_name,
+    job.origin,
+    job.source,
+    'Origem VTLog'
+  );
+
+  const destination = firstNonEmpty(
+    job.arrival_city_name,
+    job.destination?.city_name,
+    job.destination,
+    'Destino VTLog'
+  );
+
+  const cargo = firstNonEmpty(
+    job.cargo_name,
+    job.cargo?.name,
+    job.cargo,
+    'Carga VTLog'
+  );
+
   const distance = number(job.distance_client ?? job.distance ?? job.km);
   const profit = number(job.profit ?? job.value ?? job.income_distance_profit);
   const income = number(job.income);
   const expense = number(job.expense);
-  const truck = firstNonEmpty(job.truck_brand_name, job.truck?.model?.display_name, job.truck_id, job.truck_license_plate, '-');
+
+  const truck = firstNonEmpty(
+    job.truck_brand_name,
+    job.truck?.model?.display_name,
+    job.truck_id,
+    job.truck_license_plate,
+    '-'
+  );
+
   const statusRaw = String(job.job_status || job.status || 'Importada');
   const status = /delivered|entreg/i.test(statusRaw) ? 'Entregue' : statusRaw;
 
@@ -227,8 +294,18 @@ function normalizeJob(job = {}, membersBySteam = new Map()) {
     weightKg: number(job.cargo_mass),
     fuelLiters: number(job.fuel_used),
     fuelEconomy: job.fuel_economy ?? null,
-    truckDamage: Math.max(number(job.truck_cabin_damage), number(job.truck_chassis_damage), number(job.truck_engine_damage), number(job.truck_transmission_damage), number(job.truck_wheels_damage)),
-    trailersDamage: Math.max(number(job.trailers_chassis_damage), number(job.trailers_wheels_damage), number(job.trailers_body_damage)),
+    truckDamage: Math.max(
+      number(job.truck_cabin_damage),
+      number(job.truck_chassis_damage),
+      number(job.truck_engine_damage),
+      number(job.truck_transmission_damage),
+      number(job.truck_wheels_damage)
+    ),
+    trailersDamage: Math.max(
+      number(job.trailers_chassis_damage),
+      number(job.trailers_wheels_damage),
+      number(job.trailers_body_damage)
+    ),
     cargoDamage: number(job.trailer_cargo_damage),
     income,
     expense,
@@ -237,10 +314,25 @@ function normalizeJob(job = {}, membersBySteam = new Map()) {
   };
 }
 
+function normalizeMember(member = {}) {
+  return {
+    name: member.name || member.username || member.steam_id || 'Membro VTLog',
+    steamId: member.steam_id || null,
+    avatar: member.avatar || null,
+    role: member.role || null,
+    memberSince: member.member_since || member.created_at || null
+  };
+}
+
 function normalizeTruck(truck = {}) {
   return {
     truckId: truck.truck_id || null,
-    name: firstNonEmpty(truck.custom_name, truck.model?.display_name, truck.model?.brand, 'Caminhão VTLog'),
+    name: firstNonEmpty(
+      truck.custom_name,
+      truck.model?.display_name,
+      truck.model?.brand,
+      'Caminhão VTLog'
+    ),
     brand: truck.model?.brand || null,
     model: truck.model?.display_name || null,
     status: truck.status || 'desconhecido',
@@ -266,18 +358,9 @@ function normalizeGarage(garage = {}) {
   };
 }
 
-function normalizeMember(member = {}) {
-  return {
-    name: member.name || member.username || member.steam_id || 'Membro VTLog',
-    steamId: member.steam_id || null,
-    avatar: member.avatar || null,
-    role: member.role || null,
-    memberSince: member.member_since || member.created_at || null
-  };
-}
-
 function summarize(jobs, members, trucks, garages, ongoing, stats) {
   const statsData = stats?.stats || {};
+
   return {
     jobs: jobs.length || number(statsData.jobs),
     members: members.length,
@@ -292,41 +375,44 @@ function summarize(jobs, members, trucks, garages, ongoing, stats) {
 
 async function syncPersonalVtlogData(options = {}) {
   const steamId = cleanSteamId();
-  if (!steamId) throw new Error('Configure VTLOG_STEAM_ID com seu Steam ID de 17 dígitos no arquivo .env.');
 
-  const jobLimit = Math.min(Math.max(number(options.limit, number(process.env.VTLOG_JOBS_LIMIT, 25)), 1), 25);
+  if (!steamId) {
+    throw new Error('Configure VTLOG_STEAM_ID com seu Steam ID de 17 dígitos.');
+  }
+
+  const jobLimit = Math.min(
+    Math.max(number(options.limit, number(process.env.VTLOG_JOBS_LIMIT, 25)), 1),
+    25
+  );
+
   const game = options.game || process.env.VTLOG_GAME || 'ETS2';
   const board = options.board || process.env.VTLOG_BOARD || '';
-  const commonFilters = { game, board, limit: jobLimit };
+
+  const query = {
+    limit: jobLimit,
+    game,
+    board
+  };
 
   const cache = readVtlogCache();
+
   try {
-    const userPayload = await vtlogRequest(`/v2/user/${steamId}`);
-    const jobsPayload = await vtlogRequest(`/v2/user/${steamId}/jobs`, commonFilters);
+    // MODO PESSOAL:
+    // Aqui NÃO chamamos /v2/user/{steam_id}
+    // Aqui NÃO chamamos /v2/fuel-stations
+    // Aqui NÃO chamamos /v2/vtc/...
+    const jobsPayload = await vtlogRequest(`/v2/user/${steamId}/jobs`, query);
 
-    let allJobsPayload = null;
-    if (String(options.all || process.env.VTLOG_USE_ALL_JOBS || '').toLowerCase() === 'true') {
-      allJobsPayload = await vtlogRequest(`/v2/user/${steamId}/jobs/all`, { game, board, limit: jobLimit });
-    }
-
-    let fuelStationsPayload = null;
-    try {
-      fuelStationsPayload = await vtlogRequest('/v2/fuel-stations', { game: game === 'ATS' ? 20 : 10 });
-    } catch (error) {
-      fuelStationsPayload = { data: [], warning: error.message };
-    }
-
-    const rawUser = unwrap(userPayload) || {};
+    const rawJobs = asArray(jobsPayload);
     const pseudoMember = {
-      steam_id: rawUser.steam_id || steamId,
-      name: rawUser.username || rawUser.name || `Steam ${steamId}`,
-      username: rawUser.username || rawUser.name,
-      avatar: rawUser.avatar || null,
-      created_at: rawUser.created_at || null
+      steam_id: steamId,
+      name: `Steam ${steamId}`,
+      username: `Steam ${steamId}`,
+      avatar: null
     };
+
     const members = [pseudoMember];
     const membersBySteam = memberMap(members);
-    const rawJobs = asArray(jobsPayload);
     const normalizedJobs = rawJobs.map(job => normalizeJob(job, membersBySteam));
     const normalizedMembers = members.map(normalizeMember);
 
@@ -346,19 +432,26 @@ async function syncPersonalVtlogData(options = {}) {
       trucks: [],
       garages: [],
       ongoing: [],
-      fuelStations: asArray(fuelStationsPayload),
+      fuelStations: [],
       summary: summarize(normalizedJobs, normalizedMembers, [], [], [], null),
       raw: {
-        user: rawUser,
-        jobs: rawJobs,
-        allJobs: allJobsPayload ? asArray(allJobsPayload) : null,
-        fuelStationsWarning: fuelStationsPayload?.warning || null
+        jobs: rawJobs
       }
     };
+
     writeVtlogCache(nextCache);
     return nextCache;
   } catch (error) {
-    const failedCache = { ...cache, mode: 'personal', status: 'error', error: error.message, lastSyncAt: new Date().toISOString(), apiUrl: cleanApiUrl(process.env.VTLOG_API_URL || 'https://api.vtlog.net'), steamId };
+    const failedCache = {
+      ...cache,
+      mode: 'personal',
+      status: 'error',
+      error: error.message,
+      lastSyncAt: new Date().toISOString(),
+      apiUrl: cleanApiUrl(process.env.VTLOG_API_URL || 'https://api.vtlog.net'),
+      steamId
+    };
+
     writeVtlogCache(failedCache);
     throw error;
   }
@@ -367,34 +460,46 @@ async function syncPersonalVtlogData(options = {}) {
 async function syncVtcVtlogData(options = {}) {
   const token = cleanToken();
   const vtcId = cleanVtcId();
-  if (!vtcId) throw new Error('Configure VTLOG_VTC_ID no arquivo .env. Para testar sem empresa, use VTLOG_MODE=personal e VTLOG_STEAM_ID=seu Steam ID.');
-  if (!token) throw new Error('Configure VTLOG_API_TOKEN no arquivo .env. Para testar sem token, use VTLOG_MODE=personal e VTLOG_STEAM_ID=seu Steam ID.');
 
-  const jobLimit = Math.min(Math.max(number(options.limit, number(process.env.VTLOG_JOBS_LIMIT, 25)), 1), 25);
+  if (!vtcId) {
+    throw new Error('Configure VTLOG_VTC_ID. Para testar sem empresa, use VTLOG_MODE=personal e VTLOG_STEAM_ID.');
+  }
+
+  if (!token) {
+    throw new Error('Configure VTLOG_API_TOKEN. Para testar sem token, use VTLOG_MODE=personal e VTLOG_STEAM_ID.');
+  }
+
+  const jobLimit = Math.min(
+    Math.max(number(options.limit, number(process.env.VTLOG_JOBS_LIMIT, 25)), 1),
+    25
+  );
+
   const game = options.game || process.env.VTLOG_GAME || 'ETS2';
   const board = options.board || process.env.VTLOG_BOARD || '';
   const commonFilters = { game, board };
 
   const cache = readVtlogCache();
+
   try {
     const vtcPayload = await vtlogRequest(`/v2/vtc/${vtcId}`);
     const membersPayload = await vtlogRequest(`/v2/vtc/${vtcId}/members`);
     const statsPayload = await vtlogRequest(`/v2/vtc/${vtcId}/stats`, commonFilters);
-    const jobsPayload = await vtlogRequest(`/v2/vtc/${vtcId}/jobs`, { ...commonFilters, limit: jobLimit });
-    const trucksPayload = await vtlogRequest(`/v2/vtc/${vtcId}/trucks`, { retired: false });
+    const jobsPayload = await vtlogRequest(`/v2/vtc/${vtcId}/jobs`, {
+      ...commonFilters,
+      limit: jobLimit
+    });
+    const trucksPayload = await vtlogRequest(`/v2/vtc/${vtcId}/trucks`, {
+      retired: false
+    });
     const garagesPayload = await vtlogRequest(`/v2/vtc/${vtcId}/garages`);
-    const ongoingPayload = await vtlogRequest(`/v2/vtc/${vtcId}/jobs/ongoing`, { limit: 25 });
-
-    let fuelStationsPayload = null;
-    try {
-      fuelStationsPayload = await vtlogRequest('/v2/fuel-stations', { game: game === 'ATS' ? 20 : 10 });
-    } catch (error) {
-      fuelStationsPayload = { data: [], warning: error.message };
-    }
+    const ongoingPayload = await vtlogRequest(`/v2/vtc/${vtcId}/jobs/ongoing`, {
+      limit: 25
+    });
 
     const rawMembers = asArray(membersPayload);
     const membersBySteam = memberMap(rawMembers);
     const rawJobs = asArray(jobsPayload);
+
     const normalizedJobs = rawJobs.map(job => normalizeJob(job, membersBySteam));
     const normalizedMembers = rawMembers.map(normalizeMember);
     const normalizedTrucks = asArray(trucksPayload).map(normalizeTruck);
@@ -417,8 +522,15 @@ async function syncVtcVtlogData(options = {}) {
       trucks: normalizedTrucks,
       garages: normalizedGarages,
       ongoing: rawOngoing,
-      fuelStations: asArray(fuelStationsPayload),
-      summary: summarize(normalizedJobs, normalizedMembers, normalizedTrucks, normalizedGarages, rawOngoing, stats),
+      fuelStations: [],
+      summary: summarize(
+        normalizedJobs,
+        normalizedMembers,
+        normalizedTrucks,
+        normalizedGarages,
+        rawOngoing,
+        stats
+      ),
       raw: {
         vtc: unwrap(vtcPayload),
         jobs: rawJobs,
@@ -426,21 +538,33 @@ async function syncVtcVtlogData(options = {}) {
         stats,
         trucks: asArray(trucksPayload),
         garages: asArray(garagesPayload),
-        ongoing: rawOngoing,
-        fuelStationsWarning: fuelStationsPayload?.warning || null
+        ongoing: rawOngoing
       }
     };
+
     writeVtlogCache(nextCache);
     return nextCache;
   } catch (error) {
-    const failedCache = { ...cache, mode: 'vtc', status: 'error', error: error.message, lastSyncAt: new Date().toISOString(), apiUrl: cleanApiUrl(process.env.VTLOG_API_URL || 'https://api.vtlog.net'), vtcId };
+    const failedCache = {
+      ...cache,
+      mode: 'vtc',
+      status: 'error',
+      error: error.message,
+      lastSyncAt: new Date().toISOString(),
+      apiUrl: cleanApiUrl(process.env.VTLOG_API_URL || 'https://api.vtlog.net'),
+      vtcId
+    };
+
     writeVtlogCache(failedCache);
     throw error;
   }
 }
 
 async function syncVtlogData(options = {}) {
-  if (vtlogMode() === 'personal') return syncPersonalVtlogData(options);
+  if (vtlogMode() === 'personal') {
+    return syncPersonalVtlogData(options);
+  }
+
   return syncVtcVtlogData(options);
 }
 
