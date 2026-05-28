@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aliança Transportes LTDA | Plataforma Virtual</title>
+  <meta name="description" content="Sistema web da Aliança Transportes LTDA com ranking, entregas, loja, garagem, histórico, frota, combustível, NF-e fictícia e painel do motorista.">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <div class="container header-grid">
+        <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
+        <button class="brand" type="button" data-view="empresa" aria-label="Aliança Transportes LTDA">
+          <img src="assets/logo.png" alt="Logo Aliança Transportes LTDA">
+          <span><b>ALIANÇA</b><strong>TRANSPORTES LTDA</strong></span>
+        </button>
+        <nav class="main-nav" aria-label="Navegação principal">
+          <button type="button" data-view="empresa" class="active">A Empresa</button>
+          <button type="button" data-view="comunidade">Comunidade</button>
+          <button type="button" data-view="operacional">Operacional</button>
+          <button type="button" data-view="loja">Loja</button>
+          <button type="button" data-view="galeria">Galeria</button>
+          <button type="button" data-view="comboios">Próximo Comboio</button>
+          <button type="button" data-view="mural">Mural da Empresa</button>
+          <button type="button" data-view="discord">Discord/VTLog</button>
+          <button type="button" data-view="recrutamento">Recrutamento</button>
+          <button type="button" data-auth-action="login">Entrar</button>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section id="empresa" class="view active-view" aria-labelledby="empresa-title">
+        <div class="hero">
+          <div class="hero-overlay"></div>
+          <div class="container hero-content">
+            <p class="eyebrow">Transportadora virtual • Estrada • Comunidade</p>
+            <h1 id="empresa-title">Aliança Transportes LTDA</h1>
+            <p class="hero-subtitle">Gestão forte, motoristas valorizados e operação completa para uma experiência realista de transporte virtual.</p>
+            <div class="hero-actions">
+              <button class="btn primary" type="button" data-view="recrutamento">Entrar para a equipe</button>
+              <button class="btn ghost" type="button" data-view="comunidade">Ver ranking</button>
+              <button class="btn ghost" type="button" data-auth-action="panel">Painel do Motorista</button>
+            </div>
+            <div class="hero-command" aria-label="Resumo operacional">
+              <article><span>Operação</span><strong>24H</strong><small>Monitoramento interno</small></article>
+              <article><span>Economia</span><strong>ALI</strong><small>Coins, loja e garagem</small></article>
+              <article><span>Gestão</span><strong>NF-e</strong><small>Fiscal fictício e ranking</small></article>
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-routes container" aria-label="Acessos rápidos">
+          <button type="button" data-view="comunidade"><span>01</span><strong>Ranking</strong><small>Motoristas e desempenho</small></button>
+          <button type="button" data-view="operacional"><span>02</span><strong>Operacional</strong><small>Frota, combustível e oficinas</small></button>
+          <button type="button" data-view="loja"><span>03</span><strong>Economia</strong><small>Loja e mercado interno</small></button>
+          <button type="button" data-view="painel"><span>04</span><strong>Painel</strong><small>Garagem, NF-e e carreira</small></button>
+        </div>
+
+        <div class="section container">
+          <div class="section-title centered">
+            <span>Nossa Empresa</span>
+            <h2>Uma transportadora virtual com rotina de operação completa.</h2>
+            <p>Indicadores mockados são calculados no JavaScript para simular movimento real de frota, motoristas e economia interna.</p>
+          </div>
+          <div class="stats-grid" id="companyStats"></div>
+        </div>
+
+        <div class="section section-alt">
+          <div class="container">
+            <div class="section-title row-title">
+              <div>
+                <span>Nossas Bases</span>
+                <h2>Matriz e filiais da Aliança</h2>
+              </div>
+              <p>Status operacional de cada base da empresa.</p>
+            </div>
+            <div class="cards-grid" id="basesGrid"></div>
+          </div>
+        </div>
+
+        <div class="section container two-columns">
+          <article class="panel-card">
+            <span>Parceiros Oficiais</span>
+            <h2>Empresas e grupos aliados</h2>
+            <div id="partnersGrid" class="mini-card-list"></div>
+          </article>
+          <article class="panel-card">
+            <span>Streamers Oficiais</span>
+            <h2>Conteúdo, lives e comboios</h2>
+            <div id="streamersGrid" class="mini-card-list"></div>
+          </article>
+        </div>
+
+        <div class="section section-alt">
+          <div class="container two-columns align-center">
+            <div>
+              <span class="eyebrow">Sistema de Entregas e Economia</span>
+              <h2>ALI Coins movimentam a operação.</h2>
+              <p>A cada entrega, os motoristas acumulam ALI Coins, avançam no ranking, ampliam a garagem, compram itens, anunciam usados e participam de eventos internos.</p>
+              <ul class="check-list">
+                <li>Entregas geram lucro interno, KM e histórico fiscal fictício.</li>
+                <li>Bônus por preenchimento rápido e por participação em comboios.</li>
+                <li>Loja, mercado de usados e oficina simulam uma economia interna completa.</li>
+              </ul>
+            </div>
+            <form class="delivery-form" id="deliveryForm">
+              <h3>Simular entrega rápida</h3>
+              <p>Exige login do motorista.</p>
+              <label>Origem<input name="origin" required placeholder="Ex: Belo Horizonte - MG"></label>
+              <label>Destino<input name="destination" required placeholder="Ex: Santos - SP"></label>
+              <div class="grid-2">
+                <label>Distância KM<input name="km" type="number" min="1" required value="486"></label>
+                <label>Valor ALI Coins<input name="value" type="number" min="1" required value="7200"></label>
+              </div>
+              <label>Carga<input name="cargo" required placeholder="Ex: Autopeças"></label>
+              <button class="btn primary full" type="submit">Registrar entrega</button>
+            </form>
+          </div>
+        </div>
+
+        <footer class="footer">
+          <div class="container footer-grid">
+            <div>
+              <h2><span>ALIANÇA</span> TRANSPORTES LTDA</h2>
+              <p>Plataforma virtual para motoristas, ranking, economia interna, entregas e comunidade.</p>
+            </div>
+            <div>
+              <strong>Contato</strong>
+              <p>contato@aliancatransportes.com</p>
+              <p>Instagram • YouTube</p>
+            </div>
+            <div>
+              <strong>Copyright</strong>
+              <p>© Aliança Transportes LTDA. Sistema fictício para comunidade virtual.</p>
+            </div>
+          </div>
+        </footer>
+      </section>
+
+      <section id="comunidade" class="view" aria-labelledby="comunidade-title">
+        <div class="page-hero container">
+          <span class="eyebrow">Comunidade</span>
+          <h1 id="comunidade-title">Ranking, hall da fama e desempenho</h1>
+          <p>Compare motoristas por lucro, entregas, KM rodados e desempenho semanal.</p>
+        </div>
+        <div class="section container">
+          <div class="toolbar">
+            <h2>Ranking Geral</h2>
+            <label>Ordenar por
+              <select id="rankingSort">
+                <option value="profit">Lucro</option>
+                <option value="deliveries">Entregas</option>
+                <option value="km">KM rodados</option>
+              </select>
+            </label>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>#</th><th>Foto</th><th>Motorista</th><th>Entregas</th><th>KM</th><th>Lucro</th><th>Perfil</th></tr></thead><tbody id="rankingBody"></tbody></table></div>
+        </div>
+        <div class="section section-alt"><div class="container"><div class="section-title centered"><span>Hall da Fama</span><h2>Motoristas lendários</h2></div><div class="cards-grid" id="hallGrid"></div></div></div>
+        <div class="section container"><div class="toolbar"><h2>Relatório de Desempenho Semanal</h2><button class="btn ghost" type="button" id="printWeekly">Imprimir relatório</button></div><div class="table-wrap"><table><thead><tr><th>Foto</th><th>Motorista</th><th>Entregas</th><th>KM</th><th>Lucro</th></tr></thead><tbody id="weeklyBody"></tbody></table></div></div>
+        <div class="section section-alt"><div class="container"><div class="toolbar"><h2>Histórico de Desempenho</h2><div class="filters"><select id="historyYear"></select><select id="historyMonth"></select></div></div><div class="table-wrap"><table><thead><tr><th>Motorista</th><th>Mês</th><th>Entregas</th><th>KM</th><th>Lucro</th></tr></thead><tbody id="historyBody"></tbody></table></div></div></div>
+        <div class="section container"><div class="toolbar"><h2>Feed de Entregas</h2><label>Ordenar por<select id="feedSort"><option value="recent">Mais recentes</option><option value="profit">Maiores lucros</option><option value="km">Maiores distâncias</option></select></label></div><div class="cards-grid" id="feedGrid"></div></div>
+      </section>
+
+      <section id="operacional" class="view" aria-labelledby="operacional-title">
+        <div class="page-hero container">
+          <span class="eyebrow">Operacional</span>
+          <h1 id="operacional-title">Frota, oficinas e combustível</h1>
+          <p>Back-office simulado para acompanhar conservação, abastecimento, reservatórios e postos cadastrados.</p>
+        </div>
+        <div class="section container"><div class="toolbar"><h2>Frota</h2><label class="check-toggle"><input type="checkbox" id="lowFleetOnly"> Mostrar apenas abaixo de 30%</label></div><div class="cards-grid" id="fleetGrid"></div></div>
+        <div class="section section-alt"><div class="container"><div class="section-title centered"><span>Oficinas Autorizadas</span><h2>Rede de manutenção</h2></div><div class="cards-grid" id="workshopsGrid"></div></div></div>
+        <div class="section container"><div class="toolbar"><h2>Controle de Combustível</h2><button class="btn primary" type="button" id="openStations">Consultar Postos</button></div><div class="table-wrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Detalhes</th><th>Litros</th><th>Filial</th></tr></thead><tbody id="fuelBody"></tbody></table></div></div>
+        <div class="section section-alt"><div class="container"><div class="section-title centered"><span>Reservatórios</span><h2>Status por filial</h2></div><div class="cards-grid" id="tanksGrid"></div></div></div>
+        <div class="section container"><div class="section-title centered"><span>Transparência Fiscal</span><h2>NF-e fictícia e recompensas</h2><p>Simulação de notas fiscais sem valor legal: ICMS calculado em 12% e bônus de preenchimento em 5% sobre o valor da entrega.</p></div><div class="stats-grid" id="fiscalStats"></div><div class="table-wrap"><table><thead><tr><th>Número</th><th>Data</th><th>Motorista</th><th>Valor Bruto</th><th>ICMS</th><th>Bônus</th><th>Status</th></tr></thead><tbody id="fiscalBody"></tbody></table></div></div>
+      </section>
+
+      <section id="loja" class="view" aria-labelledby="loja-title">
+        <div class="page-hero container"><span class="eyebrow">Economia Interna</span><h1 id="loja-title">Loja da Empresa e Mercado de Usados</h1><p>Compre caminhões, reboques e acessórios com ALI Coins. Anuncie itens da sua garagem no mercado interno.</p></div>
+        <div class="section container"><div class="toolbar"><h2>Loja da Empresa</h2><div class="filters"><select id="storeCategory"><option value="all">Todas categorias</option><option value="caminhao">Caminhões</option><option value="reboque">Reboques</option><option value="acessorio">Acessórios</option></select><select id="storeSort"><option value="az">A-Z</option><option value="high">Maior preço</option><option value="low">Menor preço</option></select></div></div><div class="cards-grid" id="storeGrid"></div></div>
+        <div class="section section-alt"><div class="container"><div class="toolbar"><h2>Mercado de Usados</h2><select id="marketSort"><option value="recent">Mais recentes</option><option value="high">Maior preço</option><option value="low">Menor preço</option></select></div><div class="cards-grid" id="marketGrid"></div></div></div>
+        <div class="section container"><form class="form-panel" id="marketForm"><h2>Anunciar Item no Mercado</h2><p>Exige login. O item precisa estar na sua garagem.</p><div class="grid-2"><label>Categoria<select name="category" required><option value="caminhao">Caminhão</option><option value="reboque">Reboque</option><option value="acessorio">Acessório</option></select></label><label>Item da garagem<select name="garageItem" id="garageItemSelect" required></select></label><label>Cor<input name="color" required placeholder="Preto/Vermelho"></label><label>Quilometragem atual<input type="number" min="0" name="km" required value="0"></label><label>Preço de venda<input type="number" min="1" name="price" required value="15000"></label><label>Financiamento<select name="financing"><option value="sim">Sim</option><option value="nao">Não</option></select></label><label>Parcelas máximas<select name="parcels"><option>3</option><option>6</option><option>9</option><option>12</option><option>15</option></select></label><label>Link de imagem externo<input name="image" placeholder="https://..."></label></div><button class="btn primary" type="submit">Publicar anúncio</button></form></div>
+      </section>
+
+      <section id="galeria" class="view" aria-labelledby="galeria-title">
+        <div class="page-hero container"><span class="eyebrow">Galeria</span><h1 id="galeria-title">Fotos da estrada e da frota</h1><p>Registros visuais da identidade da empresa, comboios e operações.</p></div>
+        <div class="section container"><div class="gallery-grid" id="galleryGrid"></div></div>
+      </section>
+
+      <section id="comboios" class="view" aria-labelledby="comboios-title">
+        <div class="page-hero container"><span class="eyebrow">Próximo Comboio</span><h1 id="comboios-title">Eventos, desafios e comboios</h1><p>Participe dos próximos encontros e acompanhe campanhas ativas.</p></div>
+        <div class="section container"><div class="section-title centered"><span>Próximos Comboios</span><h2>Agenda de rotas</h2></div><div class="cards-grid" id="convoysGrid"></div></div>
+        <div class="section section-alt"><div class="container"><div class="section-title centered"><span>Eventos Ativos</span><h2>Desafios e campanhas</h2></div><div class="cards-grid" id="eventsGrid"></div></div></div>
+      </section>
+
+      <section id="mural" class="view" aria-labelledby="mural-title">
+        <div class="page-hero container"><span class="eyebrow">Mural da Empresa</span><h1 id="mural-title">Comunicados oficiais</h1><p>Atualizações internas, avisos de operação e informações da direção.</p></div>
+        <div class="section container"><div class="cards-grid" id="muralGrid"></div></div>
+        <div class="section section-alt"><div class="container"><div class="section-title centered"><span>FAQ do Motorista</span><h2>Perguntas frequentes</h2></div><div class="accordion" id="faqList"></div></div></div>
+      </section>
+
+      <section id="discord" class="view" aria-labelledby="discord-title">
+        <div class="page-hero container">
+          <span class="eyebrow">Integração VTLog</span>
+          <h1 id="discord-title">VTLog API + Discord</h1>
+          <p>Área para sincronizar entregas pela API oficial do VTLog e manter o Discord como apoio/fallback.</p>
+        </div>
+
+        <div class="section container">
+          <div class="toolbar">
+            <div>
+              <h2>VTLog API direta</h2>
+              <p>A integração direta pode rodar em <strong>modo pessoal</strong> usando apenas seu <code>VTLOG_STEAM_ID</code>, ou em modo empresa usando <code>VTLOG_API_TOKEN</code> + <code>VTLOG_VTC_ID</code>.</p>
+            </div>
+            <button class="btn primary" type="button" id="syncVtlogApi">Sincronizar VTLog API</button>
+          </div>
+          <div class="stats-grid" id="vtlogApiStats"></div>
+          <div class="integration-note">
+            <h3>O que a sincronização busca</h3>
+            <p>No modo pessoal, busca seus jobs pelo Steam ID. No modo empresa, busca jobs, membros, estatísticas, caminhões, garagens e entregas em andamento da VTC. Os dados ficam salvos em <code>data/vtlog-api-cache.json</code>.</p>
+          </div>
+          <div class="integration-note">
+            <h3>Webhook direto do VTLog</h3>
+            <p>Se o VTLog permitir configurar <strong>Job Webhook</strong>, use a URL pública do seu site apontando para:</p>
+            <code>/api/vtlog/webhook/job</code>
+            <p>Localmente, teste primeiro com <code>POST /api/vtlog/webhook/test</code>. Para o VTLog chamar seu computador, use ngrok ou publique no Render.</p>
+          </div>
+        </div>
+
+        <div class="section section-alt">
+          <div class="container">
+            <div class="toolbar"><h2>Jobs importados pela API</h2><button class="btn ghost" type="button" id="refreshVtlogApi">Atualizar tela</button></div>
+            <div class="table-wrap"><table><thead><tr><th>Job</th><th>Data</th><th>Motorista</th><th>Rota</th><th>Caminhão</th><th>Carga</th><th>KM</th><th>Lucro</th><th>Board</th><th>Status</th></tr></thead><tbody id="vtlogApiDeliveriesBody"></tbody></table></div>
+          </div>
+        </div>
+
+        <div class="section container">
+          <div class="toolbar">
+            <div><h2>Discord/VTLog</h2><p>Use esta área se quiser continuar importando mensagens enviadas no canal do Discord.</p></div>
+            <button class="btn primary" type="button" id="refreshDiscord">Atualizar Discord</button>
+          </div>
+          <div class="stats-grid" id="discordStats"></div>
+          <div class="integration-note">
+            <h3>Como testar via Discord</h3>
+            <p>Com o site e o bot ligados, cole uma mensagem de entrega no canal configurado como VTLog. O bot lê a mensagem, importa para o site e ela aparece abaixo.</p>
+            <code>Euro Truck Simulator 2 • Job #2263100<br>:safety_vest: Driver<br>LarissaR27<br>:clipboard: Status<br>Delivered<br>:map: Source<br>Conselheiro Lafaiete<br>:checkered_flag: Destination<br>Pirai<br>:truck: Truck<br>Mercedes-Benz Ls-1938<br>:package: Cargo<br>Vasilhames Vazios<br>:left_right_arrow: Distance<br>1265 KM<br>:coin: Profit<br>ƒ 1495</code>
+          </div>
+        </div>
+        <div class="section section-alt">
+          <div class="container">
+            <div class="toolbar"><h2>Entregas importadas pelo Discord</h2><button class="btn ghost" type="button" id="copyDiscordExample">Copiar mensagem de teste</button></div>
+            <div class="table-wrap"><table><thead><tr><th>Data</th><th>Motorista</th><th>Rota</th><th>Caminhão</th><th>Carga</th><th>KM</th><th>Lucro</th><th>Status</th></tr></thead><tbody id="discordDeliveriesBody"></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="recrutamento" class="view" aria-labelledby="recrutamento-title">
+        <div class="page-hero container"><span class="eyebrow">Recrutamento</span><h1 id="recrutamento-title">Faça parte da Aliança</h1><p>Processo seletivo dinâmico para novos motoristas virtuais.</p></div>
+        <div class="section container" id="recruitmentArea"></div>
+      </section>
+
+      <section id="painel" class="view" aria-labelledby="painel-title">
+        <div class="page-hero container"><span class="eyebrow">Painel Individual</span><h1 id="painel-title">Painel do Motorista</h1><p id="panelGreeting">Faça login para acessar sua conta.</p></div>
+        <div class="section container" id="panelGate"></div>
+        <div class="section container driver-panel hidden" id="driverPanel">
+          <div class="tab-bar" id="panelTabs">
+            <button class="active" type="button" data-tab="overview">Visão Geral</button>
+            <button type="button" data-tab="garage">Minha Garagem</button>
+            <button type="button" data-tab="career">Carreira e Desempenho</button>
+            <button type="button" data-tab="finance">Mercado e Finanças</button>
+            <button type="button" data-tab="tax">Histórico Fiscal (NF-e)</button>
+            <button type="button" data-tab="workshop">Oficina de Restauração</button>
+          </div>
+          <div class="tab-content active" id="tab-overview"></div>
+          <div class="tab-content" id="tab-garage"></div>
+          <div class="tab-content" id="tab-career"></div>
+          <div class="tab-content" id="tab-finance"></div>
+          <div class="tab-content" id="tab-tax"></div>
+          <div class="tab-content" id="tab-workshop"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal-close" type="button" id="modalClose" aria-label="Fechar">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

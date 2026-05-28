@@ -1,0 +1,37 @@
+{
+  "name": "alianca-transportes-ltda-plataforma",
+  "version": "5.0.0",
+  "description": "Sistema web da Aliança Transportes LTDA com integração direta VTLog API, Discord/VTLog, painel do motorista e economia interna.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/dev.js",
+    "check": "node --check src/server.js && node --check src/discordBot.js && node --check src/dev.js && node --check src/vtlogApi.js && node --check public/js/app.js && node --check scripts/smoke-test.js && node --check scripts/style-check.js && node --check scripts/interaction-check.js && node --check scripts/vtlog-parser-check.js",
+    "test:smoke": "node scripts/smoke-test.js",
+    "test:styles": "node scripts/style-check.js",
+    "test:interactions": "node scripts/interaction-check.js",
+    "check:all": "npm run check && npm run test:styles && npm run test:smoke && npm run test:interactions && npm run test:vtlog-parser",
+    "bot": "node src/discordBot.js",
+    "test:vtlog-parser": "node scripts/vtlog-parser-check.js"
+  },
+  "keywords": [
+    "alianca",
+    "transportes",
+    "motoristas",
+    "ranking",
+    "loja",
+    "garagem",
+    "nfe",
+    "simulacao"
+  ],
+  "author": "Aliança Transportes LTDA",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "dotenv": "^16.4.7",
+    "discord.js": "^14.17.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
