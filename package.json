@@ -32,6 +32,6 @@
     "discord.js": "^14.17.3"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.X"
   }
 }
