@@ -31,7 +31,8 @@
     "dotenv": "^16.4.7",
     "discord.js": "^14.17.3"
   },
-  "engines": {
-    "node": ">=22.X"
+ "engines": {
+  "node": "20.12.2"
+}
   }
 }
